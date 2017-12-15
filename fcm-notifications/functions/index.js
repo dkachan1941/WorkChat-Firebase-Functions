@@ -5,7 +5,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp(functions.config().firebase);
 
-exports.sendNotification = functions.database.ref('/rooms/{pushId}').onWrite((event) => {
+exports.sendNotification = functions.database.ref('/rooms/{roomId}').onWrite((event) => {
     const data = event.data;
     console.log('Message received');
     if(!data.changed()){
@@ -14,11 +14,19 @@ exports.sendNotification = functions.database.ref('/rooms/{pushId}').onWrite((ev
     }else{
         console.log(data.val());
     }
+    console.log('roomId = ', event.params.roomId);
+    console.log('data.numChildren() = ', data.numChildren());
+    console.log('data.val().name = ', data.val().name);
+
+    var ref = event.data.ref;
+    ref.update({
+        "messageCount": data.numChildren()
+    });
 
     const payLoad = {
         notification:{
-            title: 'Message received',
-            body: 'You received a new message',
+            title: event.params.roomId,
+            body: data.val().name,
             sound: "default"
         }
     };
